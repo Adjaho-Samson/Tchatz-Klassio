@@ -44,6 +44,8 @@ const MESSAGES = {
   UPLOAD_INCOMPLETE: 'L’envoi du fichier n’a pas abouti. Réessayez.',
   FILE_SIZE_MISMATCH: 'Le fichier envoyé ne correspond pas. Réessayez.',
   ACADEMIC_YEAR_INVALID: 'L’année académique doit être au format 2025-2026.',
+  LEVEL_INVALID: 'Niveau invalide. Choisissez un niveau dans la liste.',
+  JOIN_CODE_GENERATION_FAILED: 'Impossible de générer un code de classe. Réessayez.',
   EMAIL_CONFIRMATION_REQUIRED: 'Compte créé. Une confirmation par email est requise avant la connexion.',
   DEVICE_IDENTIFIER_REQUIRED: 'Appareil non reconnu. Réessayez.',
   DEVICE_NOT_FOUND: 'Appareil non enregistré. Rejoignez la classe à nouveau.',
@@ -57,19 +59,44 @@ const MESSAGES = {
 
 function extractCode(err) {
   if (!err) return 'UNKNOWN';
-  const raw =
-    (typeof err === 'string' ? err : err.code || err.message || err.error_description || err.msg || '') + '';
-  // Les fonctions serveur renvoient parfois « CODE (détails) » : on garde le code.
-  const match = raw.match(/[A-Z][A-Z_]{3,}/);
-  if (match && MESSAGES[match[0]]) return match[0];
-  const lower = raw.toLowerCase();
+  // Rassemble tous les champs susceptibles de porter un code ou un message :
+  // le code SQL (P0001, 23514…) ne doit jamais masquer le message réel.
+  const candidates = [];
+  if (typeof err === 'string') {
+    candidates.push(err.trim());
+  } else if (typeof err === 'object') {
+    for (const key of ['message', 'code', 'error_code', 'error_description', 'msg', 'error', 'details', 'hint']) {
+      const value = err[key];
+      if (typeof value === 'string' && value.trim()) candidates.push(value.trim());
+    }
+  }
+  if (candidates.length === 0) return 'UNKNOWN';
+
+  // 1) Code connu présent tel quel (ex. « user_already_exists », « LINK_REVOKED »).
+  for (const c of candidates) {
+    if (MESSAGES[c]) return c;
+  }
+  // 2) Code serveur en majuscules dans le texte (ex. « CLASSROOM_NOT_FOUND »),
+  //    même si err.code ne contient que le code SQL « P0001 ».
+  for (const c of candidates) {
+    const match = c.match(/[A-Z][A-Z_]{3,}/);
+    if (match && MESSAGES[match[0]]) return match[0];
+  }
+  // 3) Heuristiques sur le texte (authentification, réseau, contraintes…).
+  const lower = candidates.join(' ').toLowerCase();
   if (lower.includes('invalid login credentials')) return 'invalid_credentials';
-  if (lower.includes('already registered') || lower.includes('already been registered')) return 'user_already_exists';
+  if (lower.includes('already registered') || lower.includes('already been registered') || lower.includes('user_already_exists') || lower.includes('email_exists')) return 'user_already_exists';
   if (lower.includes('password should be') || lower.includes('weak password')) return 'weak_password';
   if (lower.includes('email not confirmed')) return 'EMAIL_CONFIRMATION_REQUIRED';
   if (lower.includes('rate limit') || lower.includes('too many')) return 'over_request_rate_limit';
   if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('load failed')) return 'NETWORK';
-  if (match) return match[0];
+  if (lower.includes('classrooms_level_check')) return 'LEVEL_INVALID';
+  if (lower.includes('classrooms_academic_year_check')) return 'ACADEMIC_YEAR_INVALID';
+  // 4) Dernier recours : un code majuscule quelconque, sinon message générique.
+  for (const c of candidates) {
+    const match = c.match(/[A-Z][A-Z_]{3,}/);
+    if (match) return match[0];
+  }
   return 'UNKNOWN';
 }
 
@@ -113,8 +140,8 @@ async function callEdge(action, { type, body, accessToken } = {}) {
   }
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    const code = payload?.error || `HTTP_${response.status}`;
-    throw new AppError(MESSAGES[code] || friendlyError(code), code);
+    const code = payload?.error || payload?.code || `HTTP_${response.status}`;
+    throw new AppError(MESSAGES[code] || friendlyError(payload || code), code);
   }
   return payload;
 }

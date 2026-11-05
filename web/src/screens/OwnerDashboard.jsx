@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useApp, navigate } from '../App.jsx';
 import { ownerApi, supabase, friendlyError } from '../lib/api.js';
 import { defaultAcademicYear } from '../lib/format.js';
-import { LEVEL_OPTIONS } from '../lib/config.js';
+import { LEVEL_OPTIONS, parseLevel } from '../lib/config.js';
 import { Badge, Button, Card, EmptyState, Field, Icon, Input, Loading, Modal, Notice, Select, SectionTitle } from '../components/UI.jsx';
 
 export default function OwnerDashboard() {
@@ -138,12 +138,13 @@ function CreateClassroomModal({ open, onClose, onCreated }) {
     setBusy(true);
     setError('');
     try {
+      const { level, studyYear } = parseLevel(form.level);
       const result = await ownerApi.createClassroom({
         className: form.className.trim(),
         institutionName: form.institutionName.trim(),
         fieldOfStudy: form.fieldOfStudy.trim(),
-        level: form.level,
-        studyYear: form.academicYear.trim(),
+        level,
+        studyYear,
         academicYear: form.academicYear.trim(),
       });
       onCreated(result);
