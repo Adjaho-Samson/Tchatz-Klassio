@@ -48,7 +48,7 @@ window.__renderApp();
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 await wait(120);
 
-const routes = ['/', '/rejoindre', '/classe', '/bibliotheque', '/telechargements', '/parametres', '/responsable', '/responsable/espace/abc', '/reinitialiser', '/installer', '/confidentialite', '/publier/testtoken', '/document/abc'];
+const routes = ['/', '/rejoindre', '/classe', '/bibliotheque', '/telechargements', '/parametres', '/responsable', '/responsable/espace/abc', '/reinitialiser', '/installer', '/confidentialite', '/publier/testtoken', '/document/abc', '/statistiques'];
 let failures = 0;
 for (const r of routes) {
   const before = errors.length;

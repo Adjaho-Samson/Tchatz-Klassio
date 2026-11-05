@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, studentApi, errorCode } from './lib/api.js';
 import * as store from './lib/store.js';
+import { trackPage, trackEvent } from './lib/analytics.js';
 import { Icon, Logo, Toasts } from './components/UI.jsx';
 
 import Home from './screens/Home.jsx';
@@ -17,6 +18,7 @@ import Publish from './screens/Publish.jsx';
 import Install from './screens/Install.jsx';
 import Privacy from './screens/Privacy.jsx';
 import ResetPassword from './screens/ResetPassword.jsx';
+import Stats from './screens/Stats.jsx';
 
 // ------------------------------------------------------------------ routeur
 export function navigate(path) {
@@ -45,6 +47,7 @@ function parseRoute() {
     case 'installer': return { name: 'install', params: {} };
     case 'confidentialite': return { name: 'privacy', params: {} };
     case 'reinitialiser': return { name: 'reset', params: {} };
+    case 'statistiques': return { name: 'stats', params: {} };
     default: return { name: 'home', params: {} };
   }
 }
@@ -84,6 +87,11 @@ export default function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // --- mesure d'audience anonyme (pages vues)
+  useEffect(() => {
+    trackPage(route.name);
+  }, [route]);
 
   // --- connexion / hors connexion
   useEffect(() => {
@@ -134,6 +142,7 @@ export default function App() {
     const onInstalled = () => {
       setInstalled(true);
       setInstallPrompt(null);
+      trackEvent('app_installed');
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
     window.addEventListener('appinstalled', onInstalled);
@@ -173,6 +182,7 @@ export default function App() {
       };
       store.saveSession(session);
       refreshSessions();
+      trackEvent('join_classroom');
       // Enregistre l'appareil pour les alertes de nouveaux documents.
       try {
         await studentApi.registerDevice(session.token, store.deviceId(), store.getSettings().notifications);
@@ -304,6 +314,7 @@ function Screen({ route }) {
     case 'install': return <Install />;
     case 'privacy': return <Privacy />;
     case 'reset': return <ResetPassword />;
+    case 'stats': return <Stats />;
     default: return <Home />;
   }
 }

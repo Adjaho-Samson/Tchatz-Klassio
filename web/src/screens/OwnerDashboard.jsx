@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useApp, navigate } from '../App.jsx';
-import { ownerApi, supabase, friendlyError } from '../lib/api.js';
+import { ownerApi, adminApi, supabase, friendlyError } from '../lib/api.js';
 import { defaultAcademicYear } from '../lib/format.js';
 import { LEVEL_OPTIONS, parseLevel } from '../lib/config.js';
 import { Badge, Button, Card, EmptyState, Field, Icon, Input, Loading, Modal, Notice, Select, SectionTitle } from '../components/UI.jsx';
@@ -11,6 +11,12 @@ export default function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!ownerSession) return;
+    adminApi.isAdmin().then((v) => setIsAdmin(Boolean(v))).catch(() => {});
+  }, [ownerSession]);
 
   const user = ownerSession?.user;
   const displayName = user?.user_metadata?.full_name || user?.email || 'Responsable';
@@ -46,9 +52,16 @@ export default function OwnerDashboard() {
           <h1 className="mb-0" style={{ fontSize: '1.5rem' }}>Tableau de bord</h1>
           <p className="text-secondary mb-0">Bonjour, {displayName}</p>
         </div>
-        <Button variant="outline" size="sm" icon="logout" onClick={signOut}>
-          Se déconnecter
-        </Button>
+        <div className="row" style={{ gap: 8 }}>
+          {isAdmin && (
+            <Button variant="outline" size="sm" icon="grid" onClick={() => navigate('/statistiques')}>
+              Statistiques
+            </Button>
+          )}
+          <Button variant="outline" size="sm" icon="logout" onClick={signOut}>
+            Se déconnecter
+          </Button>
+        </div>
       </div>
 
       {!online && <Notice tone="warning" icon="wifiOff">Pas de connexion. Les données se chargeront au retour du réseau.</Notice>}

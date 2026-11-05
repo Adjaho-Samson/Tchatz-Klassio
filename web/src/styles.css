@@ -786,6 +786,16 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 .dropzone-title { font-weight: 650; font-size: 0.95rem; }
 .dropzone-hint { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
 
+
+/* ------------------------------------------------ statistiques (admin) */
+.stats-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.stats-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+@media (max-width: 720px) {
+  .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .stats-two-col { grid-template-columns: 1fr; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
