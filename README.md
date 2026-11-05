@@ -14,9 +14,6 @@ Une solution de Tchatz — Samson Adjaho.
 | Élément | Description |
 |---|---|
 | `web/` | Le **site web + application installable (PWA)**, en React + Vite, connecté au backend Supabase. |
-| `web/public/klassio.apk` | L'**application Android** native, reconstruite et signée, téléchargeable depuis le site. |
-| `tools/build_apk.py` | Script qui reconstruit et signe l'APK (v1 + v2) à partir des fichiers Android extraits. |
-| `AndroidManifest.xml`, `classes*.dex`, `res/`, `resources.arsc`, … | Fichiers extraits de l'application Android d'origine (source de l'APK). |
 
 ## Trois rôles, trois accès
 
@@ -53,8 +50,8 @@ GitHub Pages :
 - **Vercel** : importer le dépôt, définir le répertoire racine sur `web/`. Vercel
   détecte Vite (`npm run build`, sortie `dist`). Aucune règle de réécriture n'est
   nécessaire grâce au routage par ancre.
-- L'APK Android est servi depuis `web/public/klassio.apk` et proposé au téléchargement
-  sur la page « Télécharger l'application » (`#/installer`).
+- L'application est installable directement depuis le navigateur (PWA) via la page
+  « Installer l'application » (`#/installer`).
 
 ## Backend
 
@@ -76,13 +73,3 @@ Le tableau de bord (`#/statistiques`) n'est visible que par l'administrateur
 par jour (7/30/90 jours), pages les plus consultées, actions clés et activité des
 classes. La migration backend est versionnée dans
 `supabase/migrations/20261105_analytics_dashboard.sql`.
-
-## Régénérer l'APK Android
-
-```bash
-python3 tools/build_apk.py
-```
-
-Le script réassemble le ZIP (alignement des ressources et bibliothèques natives),
-passe `debuggable` à `false`, signe en v1 + v2 avec une clé auto-signée
-(`tools/klassio-signing.pem`, à conserver pour les mises à jour) et vérifie le résultat.

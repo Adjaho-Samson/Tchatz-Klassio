@@ -103,7 +103,7 @@ export default function Home() {
               </p>
             </div>
             <LinkButton to="/installer" variant="primary" className="btn-sm" icon="download">
-              Télécharger
+              Installer
             </LinkButton>
           </div>
         </>

@@ -28,7 +28,7 @@ export default function Install() {
   return (
     <div className="container">
       <BackLink to="/" />
-      <h1>Télécharger l'application</h1>
+      <h1>Installer l'application</h1>
       <p className="text-secondary">
         Installez Tchatz Klassio sur votre appareil pour un accès rapide et la consultation hors
         connexion de vos documents.
@@ -68,27 +68,6 @@ export default function Install() {
           </div>
         </Card>
       )}
-
-      <SectionTitle>Application Android (APK)</SectionTitle>
-      <Card className="card-flat">
-        <div className="row" style={{ alignItems: 'flex-start' }}>
-          <span className="file-badge tone-green"><Icon name="phone" size={22} /></span>
-          <div className="grow">
-            <div className="card-title">Tchatz Klassio pour Android</div>
-            <p className="card-sub">
-              L'application Android native (version 1.0.0). Téléchargez le fichier APK et ouvrez-le
-              sur votre téléphone Android pour l'installer.
-            </p>
-            <a className="btn btn-navy" href="./klassio.apk" download="Tchatz-Klassio.apk" onClick={() => trackEvent('install_click')}>
-              <Icon name="download" /> Télécharger l'APK Android
-            </a>
-            <p className="text-sm text-muted mt-1">
-              Android 8.0 ou plus récent. Autorisez « sources inconnues » si votre téléphone le
-              demande. Même compte et mêmes classes que sur le site.
-            </p>
-          </div>
-        </div>
-      </Card>
 
       <SectionTitle>Pourquoi installer l'application ?</SectionTitle>
       <div className="steps">
