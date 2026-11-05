@@ -23,3 +23,18 @@ export const LEVEL_OPTIONS = [
   'BTS 2',
   'Classe préparatoire',
 ];
+
+// Le serveur n'accepte que les niveaux de base (Licence, Master, BTS, DUT,
+// Doctorat, Autre) et stocke l'année d'étude à part. On convertit donc le
+// libellé choisi (« Licence 2 ») en { level: 'Licence', studyYear: '2' }.
+const CANONICAL_LEVELS = { licence: 'Licence', master: 'Master', bts: 'BTS', dut: 'DUT', doctorat: 'Doctorat' };
+
+export function parseLevel(label) {
+  const text = String(label || '').trim();
+  const match = text.match(/^(Licence|Master|BTS|DUT|Doctorat)(?:\s+(\d+))?$/i);
+  if (match) {
+    return { level: CANONICAL_LEVELS[match[1].toLowerCase()], studyYear: match[2] || '1' };
+  }
+  // « Classe préparatoire » ou autre : rangé dans « Autre », libellé conservé.
+  return { level: 'Autre', studyYear: text || '1' };
+}

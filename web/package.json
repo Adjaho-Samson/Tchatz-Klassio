@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "icons": "node scripts/make-icons.mjs",
-    "test": "node test/smoke.mjs"
+    "test": "node test/smoke.mjs && node test/units.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.1.0",
