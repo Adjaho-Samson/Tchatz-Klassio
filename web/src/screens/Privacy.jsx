@@ -55,6 +55,20 @@ export default function Privacy() {
         </p>
       </Card>
 
+      <SectionTitle>Mesure d'audience</SectionTitle>
+      <Card className="card-flat">
+        <p>
+          Pour savoir combien de personnes utilisent le site, Tchatz Klassio compte les pages
+          consultées de manière <strong>anonyme</strong> : un identifiant aléatoire est créé sur
+          votre appareil, sans cookie, sans adresse email ni donnée personnelle.
+        </p>
+        <p className="mb-0">
+          Vous pouvez désactiver cette mesure à tout moment dans les Paramètres. Les statistiques
+          ne sont visibles que par l'administrateur du site et les données sont conservées 12 mois
+          maximum.
+        </p>
+      </Card>
+
       <SectionTitle>Conditions d'utilisation</SectionTitle>
       <Card className="card-flat">
         <p>

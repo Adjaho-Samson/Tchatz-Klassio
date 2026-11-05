@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../App.jsx';
 import { BackLink, Button, Card, Icon, Notice, SectionTitle } from '../components/UI.jsx';
+import { trackEvent } from '../lib/analytics.js';
 
 export default function Install() {
   const { installPrompt, installed, toast } = useApp();
@@ -11,6 +12,7 @@ export default function Install() {
 
   const install = async () => {
     if (!installPrompt) return;
+    trackEvent('install_click');
     setBusy(true);
     try {
       installPrompt.prompt();
@@ -77,7 +79,7 @@ export default function Install() {
               L'application Android native (version 1.0.0). Téléchargez le fichier APK et ouvrez-le
               sur votre téléphone Android pour l'installer.
             </p>
-            <a className="btn btn-navy" href="./klassio.apk" download="Tchatz-Klassio.apk">
+            <a className="btn btn-navy" href="./klassio.apk" download="Tchatz-Klassio.apk" onClick={() => trackEvent('install_click')}>
               <Icon name="download" /> Télécharger l'APK Android
             </a>
             <p className="text-sm text-muted mt-1">

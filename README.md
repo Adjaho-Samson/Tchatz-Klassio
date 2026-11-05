@@ -63,6 +63,20 @@ La sécurité repose sur des fonctions PostgreSQL (`api_*`) et des règles d'acc
 la clé « publishable » côté client est publique par conception. La clé `service_role`
 reste uniquement côté serveur (Edge Function) et n'est jamais exposée.
 
+## Statistiques d'audience
+
+Le site intègre une mesure d'audience **anonyme** (aucun cookie, aucune donnée
+personnelle) : chaque appareil reçoit un identifiant aléatoire, et seules les pages
+consultées et quelques actions clés (classe rejointe, clic d'installation) sont
+comptées. Les visiteurs peuvent la désactiver dans les Paramètres ; l'en-tête
+« Do Not Track » est respecté. Rétention : 12 mois.
+
+Le tableau de bord (`#/statistiques`) n'est visible que par l'administrateur
+(compte dont `profiles.is_admin = true`). Il affiche visiteurs uniques et pages vues
+par jour (7/30/90 jours), pages les plus consultées, actions clés et activité des
+classes. La migration backend est versionnée dans
+`supabase/migrations/20261105_analytics_dashboard.sql`.
+
 ## Régénérer l'APK Android
 
 ```bash

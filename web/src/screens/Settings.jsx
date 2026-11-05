@@ -45,6 +45,14 @@ export default function Settings() {
         <div className="divider" />
         <div className="row-between">
           <div className="grow">
+            <div className="card-title">Mesure d'audience anonyme</div>
+            <p className="card-sub">Compter les visites du site, sans cookie ni donnée personnelle.</p>
+          </div>
+          <Switch checked={settings.analytics !== false} onChange={(v) => updateSettings({ analytics: v })} label="Mesure d'audience anonyme" />
+        </div>
+        <div className="divider" />
+        <div className="row-between">
+          <div className="grow">
             <div className="card-title">Apparence</div>
             <p className="card-sub">Thème de l'application.</p>
           </div>

@@ -76,7 +76,7 @@ export function getActiveSession() {
 
 // ---------------------------------------------------------------- paramètres
 export function getSettings() {
-  return { notifications: true, theme: 'system', ...read('settings', {}) };
+  return { notifications: true, theme: 'system', analytics: true, ...read('settings', {}) };
 }
 
 export function saveSettings(patch) {

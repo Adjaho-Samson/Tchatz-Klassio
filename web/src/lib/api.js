@@ -41,6 +41,7 @@ const MESSAGES = {
   TEACHER_NAME_REQUIRED: 'Le nom de l’enseignant est requis (2 caractères minimum).',
   NAME_REQUIRED: 'Le nom est requis (2 caractères minimum).',
   NOT_AUTHENTICATED: 'Connexion requise.',
+  ADMIN_ONLY: 'Cette page est réservée à l’administrateur du site.',
   UPLOAD_INCOMPLETE: 'L’envoi du fichier n’a pas abouti. Réessayez.',
   FILE_SIZE_MISMATCH: 'Le fichier envoyé ne correspond pas. Réessayez.',
   ACADEMIC_YEAR_INVALID: 'L’année académique doit être au format 2025-2026.',
@@ -223,6 +224,12 @@ export const ownerApi = {
   regenerateJoinCode: (classroomId) => rpc('api_regenerate_join_code', { p_classroom_id: classroomId }),
   rotateLink: (subjectId) => rpc('api_rotate_publication_link', { p_subject_id: subjectId }),
   revokeLink: (subjectId) => rpc('api_revoke_publication_link', { p_subject_id: subjectId }),
+};
+
+// ---------------------------------------------------------------- administration
+export const adminApi = {
+  isAdmin: () => rpc('api_is_admin'),
+  stats: (days = 30) => rpc('api_admin_stats', { p_days: days }),
 };
 
 // ---------------------------------------------------------------- publication (enseignant)
