@@ -1,0 +1,12 @@
+# Dépendances et artefacts de build du site web
+web/node_modules/
+web/dist/
+web/test/smoke-bundle.mjs
+
+# Clé de signature de l'APK (privée — à conserver hors du dépôt public).
+# L'APK signé (web/public/klassio.apk) est versionné, mais pas la clé privée.
+tools/*.pem
+
+# Journaux et fichiers temporaires
+*.log
+.DS_Store
