@@ -22,7 +22,7 @@ const PAGE_LABELS = {
 
 const EVENT_LABELS = {
   join_classroom: 'Classes rejointes',
-  install_click: 'Clics « Installer / APK »',
+  install_click: 'Clics « Installer »',
   app_installed: 'Applications installées',
 };
 

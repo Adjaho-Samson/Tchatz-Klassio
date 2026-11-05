@@ -377,7 +377,7 @@ function Footer() {
         <div>Tchatz Klassio · Version 1.0.0 — Une solution de Tchatz · Samson Adjaho</div>
         <div className="footer-links">
           <a href="#/confidentialite">Confidentialité et conditions</a>
-          <a href="#/installer">Télécharger l'application</a>
+          <a href="#/installer">Installer l'application</a>
           <a href="#/responsable">Espace responsable</a>
         </div>
       </div>
