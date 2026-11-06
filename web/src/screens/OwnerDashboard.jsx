@@ -14,9 +14,13 @@ export default function OwnerDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!ownerSession) return;
-    adminApi.isAdmin().then((v) => setIsAdmin(Boolean(v))).catch(() => {});
-  }, [ownerSession]);
+    let active = true;
+    setIsAdmin(false);
+    if (ownerSession && online) {
+      adminApi.isAdmin().then((v) => { if (active) setIsAdmin(v === true); }).catch(() => {});
+    }
+    return () => { active = false; };
+  }, [ownerSession, online]);
 
   const user = ownerSession?.user;
   const displayName = user?.user_metadata?.full_name || user?.email || 'Responsable';
@@ -47,17 +51,12 @@ export default function OwnerDashboard() {
 
   return (
     <div className="container">
-      <div className="row-between wrap mb-2">
+      <div className="row-between wrap mb-2 owner-dashboard-header">
         <div>
           <h1 className="mb-0" style={{ fontSize: '1.5rem' }}>Tableau de bord</h1>
           <p className="text-secondary mb-0">Bonjour, {displayName}</p>
         </div>
-        <div className="row" style={{ gap: 8 }}>
-          {isAdmin && (
-            <Button variant="outline" size="sm" icon="grid" onClick={() => navigate('/statistiques')}>
-              Statistiques
-            </Button>
-          )}
+        <div className="row wrap" style={{ gap: 8 }}>
           <Button variant="outline" size="sm" icon="logout" onClick={signOut}>
             Se déconnecter
           </Button>
@@ -67,7 +66,18 @@ export default function OwnerDashboard() {
       {!online && <Notice tone="warning" icon="wifiOff">Pas de connexion. Les données se chargeront au retour du réseau.</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
 
-      <div className="row-between mt-2">
+      {isAdmin && (
+        <a className="admin-stats-link" href="#/statistiques">
+          <span className="file-badge tone-blue"><Icon name="grid" size={22} /></span>
+          <span className="grow">
+            <strong>Visiteurs et statistiques</strong>
+            <span>Consulter l’audience du site</span>
+          </span>
+          <Icon name="chevronRight" className="doc-chevron" />
+        </a>
+      )}
+
+      <div className="row-between owner-section-heading mt-2">
         <SectionTitle>Mes espaces de classe</SectionTitle>
         <Button size="sm" icon="plus" onClick={() => setShowCreate(true)} disabled={!online}>
           Nouvelle classe
@@ -180,7 +190,7 @@ function CreateClassroomModal({ open, onClose, onCreated }) {
         <Field label="Filière" htmlFor="cc-field">
           <Input id="cc-field" value={form.fieldOfStudy} onChange={set('fieldOfStudy')} placeholder="Ex. : Systèmes Informatiques et Logiciels" />
         </Field>
-        <div className="row" style={{ gap: 12 }}>
+        <div className="classroom-form-fields">
           <div className="grow">
             <Field label="Niveau" htmlFor="cc-level">
               <Select id="cc-level" value={form.level} onChange={set('level')}>

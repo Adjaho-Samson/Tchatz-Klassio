@@ -5,7 +5,7 @@
    ============================================================ */
 
 :root {
-  /* Marque (extraite de l'application Android) */
+  /* Marque */
   --blue: #2563eb;
   --blue-dark: #1d4ed8;
   --blue-bg: #dbeafe;
@@ -389,7 +389,7 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 }
 .doc-row:hover { border-color: var(--blue); box-shadow: var(--shadow); text-decoration: none; }
 .doc-row + .doc-row { margin-top: 10px; }
-.doc-info { flex: 1; min-width: 0; }
+.doc-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .doc-title {
   font-weight: 650;
   font-size: 0.97rem;
@@ -404,7 +404,7 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 .doc-chevron { color: var(--text-muted); flex: none; }
 
 /* ------------------------------------------------ stats */
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -657,6 +657,20 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 .class-header .class-meta { color: #c7d6ee; font-size: 0.9rem; }
 .class-header .badge { background: rgba(255, 255, 255, 0.16); color: #fff; }
 
+/* ------------------------------------------------ owner dashboard */
+.owner-dashboard-header > div { min-width: 0; overflow-wrap: anywhere; }
+.owner-section-heading { flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.owner-section-heading .section-title { margin: 0; }
+.classroom-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-stats-link {
+  display: flex; align-items: center; gap: 14px; padding: 16px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+}
+.admin-stats-link:hover { border-color: var(--blue); text-decoration: none; }
+.admin-stats-link strong, .admin-stats-link .grow > span { display: block; }
+.admin-stats-link .grow > span { color: var(--text-secondary); font-size: 0.875rem; }
+
 /* ------------------------------------------------ owner subject admin */
 .admin-subject { border-left: 4px solid var(--blue); }
 .admin-subject.revoked { border-left-color: var(--border-strong); }
@@ -788,11 +802,11 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 
 
 /* ------------------------------------------------ statistiques (admin) */
-.stats-grid-4 { grid-template-columns: repeat(4, 1fr); }
-.stats-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.stats-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stats-two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 @media (max-width: 720px) {
-  .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stats-two-col { grid-template-columns: 1fr; }
 }
 
@@ -807,7 +821,12 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
 @media (max-width: 480px) {
   .container { padding: 0 16px; }
   .hero { padding: 28px 20px; border-radius: 18px; }
-  .stats-grid { gap: 8px; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .owner-section-heading { align-items: stretch; flex-direction: column; }
+  .owner-section-heading .btn { width: 100%; }
+  .classroom-form-fields { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .doc-row { gap: 10px; padding: 12px; }
+  .stat-value, .stat-label, .subject-name, .detail-value { overflow-wrap: anywhere; }
   .btn-row { flex-direction: column; }
   .btn-row .btn { width: 100%; }
 }
