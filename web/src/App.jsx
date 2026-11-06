@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { supabase, studentApi, errorCode } from './lib/api.js';
+import { supabase, studentApi, errorCode, isRecoveryCallback } from './lib/api.js';
 import * as store from './lib/store.js';
 import { trackPage, trackEvent } from './lib/analytics.js';
 import { Icon, Logo, Toasts } from './components/UI.jsx';
@@ -64,6 +64,7 @@ export default function App() {
   const [activeToken, setActiveTokenState] = useState(store.getActiveToken);
   const [ownerSession, setOwnerSession] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [recoveryError, setRecoveryError] = useState(false);
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [toasts, setToasts] = useState([]);
   const [settings, setSettings] = useState(store.getSettings);
@@ -121,16 +122,24 @@ export default function App() {
 
   // --- session responsable (Supabase Auth)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setOwnerSession(data.session || null);
+    let active = true;
+    (async () => {
+      const { error: initError } = await supabase.auth.initialize();
+      const { data, error } = await supabase.auth.getSession();
+      if (!active) return;
+      setOwnerSession(data?.session || null);
+      if (isRecoveryCallback) {
+        setRecoveryError(Boolean(initError || error || !data?.session));
+        navigate('/reinitialiser');
+      }
       setAuthReady(true);
-    });
+    })();
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setOwnerSession(session || null);
-      if (event === 'PASSWORD_RECOVERY') navigate('/reinitialiser');
+      if (event === 'PASSWORD_RECOVERY') { setRecoveryError(false); navigate('/reinitialiser'); }
       if (event === 'SIGNED_OUT') setOwnerSession(null);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
   // --- installation PWA
@@ -266,6 +275,7 @@ export default function App() {
       handleSessionInvalid,
       ownerSession,
       authReady,
+      recoveryError,
       online,
       toast,
       settings,
@@ -274,7 +284,7 @@ export default function App() {
       installed,
     }),
     [route, sessions, activeSession, setActiveToken, joinClassroom, leaveClassroom, refreshSessions,
-      handleSessionInvalid, ownerSession, authReady, online, toast, settings, updateSettings, installPrompt, installed]
+      handleSessionInvalid, ownerSession, authReady, recoveryError, online, toast, settings, updateSettings, installPrompt, installed]
   );
 
   const showBottomNav = Boolean(activeSession) && STUDENT_ROUTES.includes(route.name);

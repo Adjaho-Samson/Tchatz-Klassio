@@ -178,7 +178,7 @@ export default function OwnerSpace({ id }) {
         </div>
       </Card>
 
-      <div className="row-between mt-3">
+      <div className="row-between owner-section-heading mt-3">
         <SectionTitle>Matières et liens de publication</SectionTitle>
         <Button size="sm" icon="plus" onClick={() => setShowSubject(true)} disabled={!online}>Nouvelle matière</Button>
       </div>
@@ -285,7 +285,7 @@ export default function OwnerSpace({ id }) {
         </div>
       )}
 
-      <div className="row-between mt-3">
+      <div className="row-between owner-section-heading mt-3">
         <SectionTitle>Documents publiés</SectionTitle>
         {subjects.length > 0 && (
           <select className="select" style={{ width: 'auto', minHeight: 38, padding: '6px 36px 6px 12px', fontSize: '0.85rem' }}

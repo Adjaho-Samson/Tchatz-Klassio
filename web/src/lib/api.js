@@ -1,5 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { normalizeAuthCallback } from './auth-redirect.js';
+
+const callback = typeof window !== 'undefined' ? normalizeAuthCallback(window.location.href) : { recovery: false, changed: false };
+if (callback.changed) window.history.replaceState(window.history.state, '', callback.href);
+export const isRecoveryCallback = callback.recovery;
 
 // Client Supabase : gère la session « responsable » (connexion, rafraîchissement
 // automatique du jeton). Les étudiants n'ont pas de compte : ils utilisent un

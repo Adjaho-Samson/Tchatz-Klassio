@@ -48,10 +48,10 @@ export default function OwnerAuth() {
         }
       } else if (mode === 'reset') {
         const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}${window.location.pathname}#/reinitialiser`,
+          redirectTo: `${window.location.origin}${window.location.pathname}`,
         });
         if (err) throw err;
-        setInfo('Un email de réinitialisation a été envoyé.');
+        setInfo('Si un compte correspond à cette adresse, un email de réinitialisation a été envoyé. Vérifiez aussi les courriers indésirables.');
         setMode('signin');
       }
     } catch (err) {

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp, navigate } from '../App.jsx';
 import { supabase, friendlyError } from '../lib/api.js';
-import { BackLink, Button, Card, Field, Input, Notice } from '../components/UI.jsx';
+import { BackLink, Button, Card, Field, Input, Loading, Notice } from '../components/UI.jsx';
 
 export default function ResetPassword() {
-  const { ownerSession, toast } = useApp();
+  const { ownerSession, authReady, recoveryError, toast } = useApp();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +38,12 @@ export default function ResetPassword() {
     <div className="container">
       <BackLink to="/responsable" />
       <h1>Nouveau mot de passe</h1>
-      {ownerSession ? (
+      {!authReady ? <Loading label="Vérification du lien…" /> : recoveryError ? (
+        <Card>
+          <Notice tone="error">Ce lien est invalide, expiré ou déjà utilisé. Demandez un nouveau lien depuis la page de connexion.</Notice>
+          <Button variant="outline" block onClick={() => navigate('/responsable')}>Retour à la connexion</Button>
+        </Card>
+      ) : ownerSession ? (
         <>
           <p className="text-secondary">Choisissez un nouveau mot de passe pour votre compte responsable.</p>
           <Card>

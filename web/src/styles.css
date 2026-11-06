@@ -318,7 +318,9 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.6;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .badge-blue { background: var(--blue-bg); color: var(--blue-dark); }
 [data-theme='dark'] .badge-blue { color: var(--sky); }
@@ -400,6 +402,7 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.doc-meta > span { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .doc-meta { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .doc-chevron { color: var(--text-muted); flex: none; }
 
@@ -610,13 +613,15 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   background: var(--surface-2);
   border: 1.5px dashed var(--border-strong);
   border-radius: 12px;
   padding: 14px 16px;
 }
-.code-value { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.18em; color: var(--navy); }
+.code-display .row { flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.code-value { max-width: 100%; overflow-wrap: anywhere; font-size: 1.35rem; font-weight: 800; letter-spacing: 0.18em; color: var(--navy); }
 [data-theme='dark'] .code-value { color: var(--sky); }
 .link-box {
   background: var(--surface-2);
@@ -648,19 +653,21 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   width: 100%;
 }
 .subject-card:hover { border-color: var(--blue); box-shadow: var(--shadow); }
-.subject-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.subject-name { min-width: 0; overflow-wrap: anywhere; font-weight: 700; font-size: 1rem; color: var(--text); }
 .subject-desc { font-size: 0.85rem; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ------------------------------------------------ classroom header card */
 .class-header { background: linear-gradient(135deg, var(--navy), #1e4a8f); color: #fff; border: none; }
-.class-header h2 { color: #fff; margin-bottom: 4px; }
+.class-header h2 { color: #fff; margin-bottom: 4px; overflow-wrap: anywhere; }
+.class-header .class-meta { overflow-wrap: anywhere; }
 .class-header .class-meta { color: #c7d6ee; font-size: 0.9rem; }
 .class-header .badge { background: rgba(255, 255, 255, 0.16); color: #fff; }
 
 /* ------------------------------------------------ owner dashboard */
 .owner-dashboard-header > div { min-width: 0; overflow-wrap: anywhere; }
 .owner-section-heading { flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-.owner-section-heading .section-title { margin: 0; }
+.owner-section-heading .section-title { margin: 0; min-width: 0; }
+.owner-section-heading .select { max-width: 100%; }
 .classroom-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .admin-stats-link {
   display: flex; align-items: center; gap: 14px; padding: 16px;
@@ -823,7 +830,14 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   .hero { padding: 28px 20px; border-radius: 18px; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .owner-section-heading { align-items: stretch; flex-direction: column; }
-  .owner-section-heading .btn { width: 100%; }
+  .owner-section-heading .btn, .owner-section-heading .select { width: 100% !important; }
+  .code-display { align-items: stretch; flex-direction: column; }
+  .code-display .row { flex-wrap: wrap; }
+  .code-display .row .btn { flex: 1 1 auto; }
+  .code-value { overflow-wrap: anywhere; }
+  .admin-actions .btn { flex: 1 1 140px; }
+  .owner-dashboard-header .row { width: 100%; }
+  .owner-dashboard-header .row .btn { flex: 1; }
   .classroom-form-fields { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .doc-row { gap: 10px; padding: 12px; }
   .stat-value, .stat-label, .subject-name, .detail-value { overflow-wrap: anywhere; }
