@@ -29,7 +29,7 @@ await build({
   logLevel: 'silent',
 });
 
-const { parseLevel, friendlyError, errorCode } = await import(pathToFileURL(join(root, 'test/units-bundle.mjs')).href);
+const { parseLevel, friendlyError, errorCode, normalizeAuthCallback } = await import(pathToFileURL(join(root, 'test/units-bundle.mjs')).href);
 
 let passed = 0;
 let failed = 0;
@@ -43,6 +43,22 @@ function check(name, fn) {
     console.log('✗ ' + name + ' — ' + err.message);
   }
 }
+
+// Les anciens liens peuvent avoir deux fragments, le premier étant la route.
+check('lien de récupération avec route et jetons normalisé', () => {
+  const result = normalizeAuthCallback('https://example.com/app/#/reinitialiser#access_token=abc&refresh_token=def&type=recovery');
+  assert.strictEqual(result.href, 'https://example.com/app/#access_token=abc&refresh_token=def&type=recovery');
+  assert.strictEqual(result.recovery, true);
+});
+check('lien Supabase standard reconnu sans modification', () => {
+  const result = normalizeAuthCallback('https://example.com/app/#access_token=abc&refresh_token=def&type=recovery');
+  assert.strictEqual(result.changed, false);
+  assert.strictEqual(result.recovery, true);
+});
+check('erreur de lien expiré reconnue et route normale préservée', () => {
+  assert.strictEqual(normalizeAuthCallback('https://example.com/#error=access_denied&error_code=otp_expired').recovery, true);
+  assert.strictEqual(normalizeAuthCallback('https://example.com/#/responsable').recovery, false);
+});
 
 // --- Conversion des niveaux (le serveur n'accepte que les niveaux de base) ---
 check('parseLevel("Licence 2") → Licence + 2', () =>
