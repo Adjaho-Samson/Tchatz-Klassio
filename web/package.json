@@ -14,8 +14,13 @@
   "dependencies": {
     "@fontsource-variable/inter": "^5.1.0",
     "@supabase/supabase-js": "^2.47.10",
+    "docx-preview": "^0.4.1",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^4.10.38",
+    "pptxtojson": "^2.2.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",

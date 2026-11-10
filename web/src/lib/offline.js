@@ -1,6 +1,8 @@
 // Gestion des documents téléchargés : conservés dans le cache du navigateur
 // pour rester consultables hors connexion, sur cet appareil uniquement.
 import { addDownload, removeDownload, getDownloads } from './store.js';
+import { ensureFileName, mimeFor, normalizeBlob } from './file-types.js';
+import { preloadViewerFor } from './viewer-preload.js';
 
 const DOCS_CACHE = 'klassio-docs-v1';
 
@@ -8,27 +10,13 @@ function docKey(id) {
   return `${location.origin}/__klassio_offline__/${id}`;
 }
 
-function mimeFor(type) {
-  const map = {
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ppt: 'application/vnd.ms-powerpoint',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-  };
-  return map[(type || '').toLowerCase()] || 'application/octet-stream';
-}
-
 export async function saveOffline(document, blob) {
+  const mime = mimeFor(document.file_type, document.file_name);
+  const typed = normalizeBlob(blob, document.file_name, document.file_type);
   const cache = await caches.open(DOCS_CACHE);
   await cache.put(
     docKey(document.id),
-    new Response(blob, { headers: { 'Content-Type': mimeFor(document.file_type) } })
+    new Response(typed, { headers: { 'Content-Type': mime } })
   );
   addDownload({
     id: document.id,
@@ -42,6 +30,8 @@ export async function saveOffline(document, blob) {
     classroomId: document.classroom_id || null,
     downloadedAt: new Date().toISOString(),
   });
+  // Précharge le moteur de lecture adapté pour garantir l'ouverture hors connexion.
+  preloadViewerFor(document.file_type, document.file_name);
 }
 
 export async function getOfflineBlob(id) {
@@ -61,30 +51,41 @@ export function listOffline() {
   return getDownloads();
 }
 
-/** Ouvre un document : aperçu dans le navigateur si possible, sinon téléchargement. */
+/** Enregistre proprement un Blob sur l'appareil avec son vrai type MIME et son extension. */
+export function downloadBlob(blob, fileName, fileType, fallbackTitle = 'document') {
+  const typed = normalizeBlob(blob, fileName, fileType);
+  const safeName = ensureFileName(fileName, fileType, fallbackTitle);
+  const url = URL.createObjectURL(typed);
+  triggerDownload(url, safeName);
+  setTimeout(() => URL.revokeObjectURL(url), 300_000);
+}
+
+/** Ouvre un document : aperçu natif ou téléchargement avec type MIME corrigé. */
 export function openBlob(blob, fileName, fileType, { forceDownload = false } = {}) {
-  const type = mimeFor(fileType);
-  const viewable = ['application/pdf', 'image/jpeg', 'image/png'].includes(type);
-  const url = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type }));
+  const typed = normalizeBlob(blob, fileName, fileType);
+  const type = mimeFor(fileType, fileName).split(';')[0].trim();
+  const safeName = ensureFileName(fileName, fileType);
+  const viewable = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'].includes(type);
+  const url = URL.createObjectURL(typed);
   if (viewable && !forceDownload) {
     const win = window.open(url, '_blank', 'noopener');
     if (!win) {
-      // Popup bloqué : on propose le téléchargement direct.
-      triggerDownload(url, fileName);
+      triggerDownload(url, safeName);
     }
   } else {
-    triggerDownload(url, fileName);
+    triggerDownload(url, safeName);
   }
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  setTimeout(() => URL.revokeObjectURL(url), 300_000);
 }
 
 function triggerDownload(url, fileName) {
   const a = document.createElement('a');
   a.href = url;
   a.download = fileName || 'document';
+  a.rel = 'noopener';
   document.body.appendChild(a);
   a.click();
   a.remove();
 }
 
-export { mimeFor };
+export { mimeFor, normalizeBlob, ensureFileName };

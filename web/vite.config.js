@@ -21,7 +21,20 @@ export default defineConfig({
   build: {
     // Pas de source maps en production : le code interne n'est pas exposé.
     sourcemap: false,
-    target: 'es2019',
-    chunkSizeWarningLimit: 900,
+    target: 'es2020',
+    chunkSizeWarningLimit: 1500,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('pdf.worker')) return 'viewer-pdf-worker-fallback';
+          if (id.includes('pdfjs-dist')) return 'viewer-pdf';
+          if (id.includes('docx-preview')) return 'viewer-docx';
+          if (id.includes('pptxtojson') || id.includes('txml') || id.includes('tinycolor2')) return 'viewer-pptx';
+          if (id.includes('/xlsx/') || id.includes('/cfb/') || id.includes('/ssf/')) return 'viewer-sheet';
+          if (id.includes('jszip') || id.includes('pako')) return 'viewer-zip';
+          return undefined;
+        },
+      },
+    },
   },
 });

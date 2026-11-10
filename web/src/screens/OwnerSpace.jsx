@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useApp, navigate } from '../App.jsx';
 import { ownerApi, signDocument, purgeFiles, friendlyError } from '../lib/api.js';
-import { openBlob } from '../lib/offline.js';
+import { downloadBlob, normalizeBlob } from '../lib/offline.js';
 import {
   BackLink, Badge, Button, Card, ConfirmModal, EmptyState, Field, Icon, Input, Loading, Modal,
   Notice, SectionTitle, Textarea,
 } from '../components/UI.jsx';
 import DocumentRow from '../components/DocumentRow.jsx';
+import DocumentViewer from '../components/DocumentViewer.jsx';
 import { formatBytes, formatDate } from '../lib/format.js';
 
 function publishUrl(token) {
@@ -27,6 +28,7 @@ export default function OwnerSpace({ id }) {
   const [linkInfo, setLinkInfo] = useState(null); // { token, subjectName, rotated }
   const [confirm, setConfirm] = useState(null); // { title, message, label, danger, action }
   const [docFilter, setDocFilter] = useState(null);
+  const [viewerItem, setViewerItem] = useState(null); // { doc, blob }
 
   const load = useCallback(async () => {
     if (!id || !ownerSession) return;
@@ -113,8 +115,9 @@ export default function OwnerSpace({ id }) {
       });
       const response = await fetch(result.signed_url);
       if (!response.ok) throw new Error('FETCH');
-      const blob = await response.blob();
-      openBlob(blob, doc.file_name, doc.file_type);
+      const raw = await response.blob();
+      const typed = normalizeBlob(raw, doc.file_name, doc.file_type);
+      setViewerItem({ doc: result.document || doc, blob: typed });
     } catch {
       toast('Impossible d’ouvrir le document.', 'error');
     } finally {
@@ -393,6 +396,23 @@ export default function OwnerSpace({ id }) {
         confirmLabel={confirm?.label || 'Confirmer'}
         danger={confirm?.danger}
         busy={Boolean(busy)}
+      />
+
+      <DocumentViewer
+        open={Boolean(viewerItem)}
+        blob={viewerItem?.blob}
+        doc={viewerItem?.doc}
+        onClose={() => setViewerItem(null)}
+        onDownload={() => {
+          if (viewerItem) {
+            downloadBlob(
+              viewerItem.blob,
+              viewerItem.doc.file_name,
+              viewerItem.doc.file_type,
+              viewerItem.doc.title
+            );
+          }
+        }}
       />
     </div>
   );

@@ -1,26 +1,47 @@
 import React, { useState } from 'react';
-import { useApp, navigate } from '../App.jsx';
+import { useApp } from '../App.jsx';
 import { getDownloads } from '../lib/store.js';
-import { getOfflineBlob, deleteOffline, openBlob } from '../lib/offline.js';
-import { Button, Card, EmptyState, FileBadge, Icon, LinkButton, Notice } from '../components/UI.jsx';
+import { getOfflineBlob, deleteOffline, downloadBlob, normalizeBlob } from '../lib/offline.js';
+import { Button, Card, EmptyState, FileBadge, LinkButton, Notice } from '../components/UI.jsx';
+import DocumentViewer from '../components/DocumentViewer.jsx';
 import { formatBytes, formatDate } from '../lib/format.js';
 
 export default function Downloads() {
   const { toast } = useApp();
   const [downloads, setDownloads] = useState(getDownloads);
   const [busy, setBusy] = useState('');
+  const [viewerItem, setViewerItem] = useState(null); // { doc, blob }
 
   const open = async (d) => {
     setBusy(d.id);
     const blob = await getOfflineBlob(d.id);
     if (blob) {
-      openBlob(blob, d.fileName, d.fileType);
+      const typed = normalizeBlob(blob, d.fileName, d.fileType);
+      setViewerItem({
+        doc: {
+          id: d.id,
+          title: d.title,
+          file_name: d.fileName,
+          file_type: d.fileType,
+          file_size: d.fileSize,
+        },
+        blob: typed,
+      });
     } else {
       toast('Fichier introuvable sur cet appareil.', 'error');
       const next = getDownloads().filter((x) => x.id !== d.id);
       setDownloads(next);
     }
     setBusy('');
+  };
+
+  const saveToDevice = async (d) => {
+    const blob = await getOfflineBlob(d.id);
+    if (blob) {
+      downloadBlob(blob, d.fileName, d.fileType, d.title);
+    } else {
+      toast('Fichier introuvable sur cet appareil.', 'error');
+    }
   };
 
   const remove = async (d) => {
@@ -63,9 +84,12 @@ export default function Downloads() {
                       <span>{formatBytes(d.fileSize)}</span>
                       {d.downloadedAt && <span>Enregistré le {formatDate(d.downloadedAt)}</span>}
                     </div>
-                    <div className="row mt-1" style={{ gap: 8 }}>
-                      <Button size="sm" variant="outline" icon="eye" onClick={() => open(d)} disabled={busy === d.id}>
-                        {busy === d.id ? 'Ouverture…' : 'Ouvrir'}
+                    <div className="row wrap mt-1" style={{ gap: 8 }}>
+                      <Button size="sm" variant="primary" icon="eye" onClick={() => open(d)} disabled={busy === d.id}>
+                        {busy === d.id ? 'Ouverture…' : 'Lire'}
+                      </Button>
+                      <Button size="sm" variant="outline" icon="download" onClick={() => saveToDevice(d)}>
+                        Enregistrer
                       </Button>
                       <Button size="sm" variant="ghost" icon="trash" onClick={() => remove(d)}>
                         Retirer
@@ -78,6 +102,23 @@ export default function Downloads() {
           </div>
         </>
       )}
+
+      <DocumentViewer
+        open={Boolean(viewerItem)}
+        blob={viewerItem?.blob}
+        doc={viewerItem?.doc}
+        onClose={() => setViewerItem(null)}
+        onDownload={() => {
+          if (viewerItem) {
+            downloadBlob(
+              viewerItem.blob,
+              viewerItem.doc.file_name,
+              viewerItem.doc.file_type,
+              viewerItem.doc.title
+            );
+          }
+        }}
+      />
     </div>
   );
 }
