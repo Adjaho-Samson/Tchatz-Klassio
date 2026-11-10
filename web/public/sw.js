@@ -3,7 +3,7 @@
  * Les appels à l'API (Supabase) ne sont jamais interceptés : données fraîches
  * quand le réseau est disponible, documents téléchargés disponibles sinon.
  */
-const SHELL_CACHE = 'klassio-shell-v1';
+const SHELL_CACHE = 'klassio-shell-v2';
 const DOCS_CACHE = 'klassio-docs-v1';
 const SHELL_ASSETS = [
   './',

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { normalizeAuthCallback } from './auth-redirect.js';
+import { extFromName, mimeFor } from './file-types.js';
 
 const callback = typeof window !== 'undefined' ? normalizeAuthCallback(window.location.href) : { recovery: false, changed: false };
 if (callback.changed) window.history.replaceState(window.history.state, '', callback.href);
@@ -258,7 +259,11 @@ export const publishApi = {
       xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
       xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_ANON_KEY}`);
       xhr.setRequestHeader('x-upsert', 'false');
-      if (file.type) xhr.setRequestHeader('Content-Type', file.type);
+      const resolvedMime = mimeFor(extFromName(file.name), file.name);
+      const uploadType = resolvedMime !== 'application/octet-stream'
+        ? resolvedMime
+        : (file.type || 'application/octet-stream');
+      xhr.setRequestHeader('Content-Type', uploadType);
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
       };

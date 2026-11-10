@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../App.jsx';
 import { signDocument, friendlyError, errorCode } from '../lib/api.js';
 import { getDownloads, isDownloaded } from '../lib/store.js';
-import { saveOffline, getOfflineBlob, deleteOffline, openBlob } from '../lib/offline.js';
-import { BackLink, Badge, Button, Card, EmptyState, FileBadge, Icon, Loading, Notice } from '../components/UI.jsx';
+import { saveOffline, getOfflineBlob, deleteOffline, downloadBlob, ensureFileName, mimeFor, normalizeBlob } from '../lib/offline.js';
+import { BackLink, Badge, Button, Card, EmptyState, FileBadge, Loading, Notice } from '../components/UI.jsx';
+import DocumentViewer from '../components/DocumentViewer.jsx';
 import { formatBytes, formatDate } from '../lib/format.js';
 
 export default function DocumentDetail({ id }) {
@@ -15,11 +16,13 @@ export default function DocumentDetail({ id }) {
   const [busy, setBusy] = useState('');
   const [progress, setProgress] = useState(0);
   const [downloaded, setDownloaded] = useState(isDownloaded(id));
+  const [viewerBlob, setViewerBlob] = useState(null);
 
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError('');
+    setViewerBlob(null);
     // Hors connexion (ou document déjà téléchargé) : métadonnées locales.
     const local = getDownloads().find((d) => d.id === id);
     if (!online) {
@@ -83,15 +86,20 @@ export default function DocumentDetail({ id }) {
     load();
   }, [load]);
 
-  /** Récupère le contenu du fichier (cache local ou URL signée), avec progression. */
+  /** Récupère le contenu du fichier (cache local ou URL signée), avec progression et MIME normalisé. */
   const fetchBlob = async () => {
+    if (viewerBlob) return viewerBlob;
     const cached = await getOfflineBlob(id);
-    if (cached) return cached;
+    if (cached) return normalizeBlob(cached, doc?.file_name, doc?.file_type);
     if (!signedUrl) throw new Error('Aucune URL');
     const response = await fetch(signedUrl);
     if (!response.ok) throw new Error('FETCH_FAILED');
+    const expectedMime = mimeFor(doc?.file_type, doc?.file_name);
     const total = Number(response.headers.get('content-length')) || doc?.file_size || 0;
-    if (!response.body || !total) return response.blob();
+    if (!response.body || !total) {
+      const raw = await response.blob();
+      return normalizeBlob(raw, doc?.file_name, doc?.file_type);
+    }
     const reader = response.body.getReader();
     const chunks = [];
     let received = 0;
@@ -103,7 +111,10 @@ export default function DocumentDetail({ id }) {
       setProgress(Math.min(99, Math.round((received / total) * 100)));
     }
     setProgress(100);
-    return new Blob(chunks, { type: response.headers.get('content-type') || undefined });
+    const mime = expectedMime !== 'application/octet-stream'
+      ? expectedMime
+      : (response.headers.get('content-type') || 'application/octet-stream');
+    return new Blob(chunks, { type: mime });
   };
 
   const handleOpen = async () => {
@@ -111,8 +122,8 @@ export default function DocumentDetail({ id }) {
     setError('');
     try {
       const blob = await fetchBlob();
-      openBlob(blob, doc.file_name, doc.file_type);
-    } catch (err) {
+      setViewerBlob(blob);
+    } catch {
       setError(online ? 'Impossible d’ouvrir le document. Réessayez.' : 'Document indisponible hors connexion.');
     } finally {
       setBusy('');
@@ -127,7 +138,7 @@ export default function DocumentDetail({ id }) {
       const blob = await fetchBlob();
       await saveOffline({ ...doc, classroom_id: activeSession?.classroom?.id }, blob);
       setDownloaded(true);
-      openBlob(blob, doc.file_name, doc.file_type, { forceDownload: true });
+      downloadBlob(blob, doc.file_name, doc.file_type, doc.title);
       toast('Document enregistré sur l’appareil.', 'success');
     } catch (err) {
       setError(friendlyError(err));
@@ -141,7 +152,7 @@ export default function DocumentDetail({ id }) {
     setBusy('save');
     try {
       const blob = await fetchBlob();
-      openBlob(blob, doc.file_name, doc.file_type, { forceDownload: true });
+      downloadBlob(blob, doc.file_name, doc.file_type, doc.title);
     } catch {
       setError('Impossible de récupérer le document.');
     } finally {
@@ -159,9 +170,14 @@ export default function DocumentDetail({ id }) {
   const handleShare = async () => {
     try {
       const blob = await getOfflineBlob(id);
-      if (blob && navigator.canShare?.({ files: [new File([blob], doc.file_name)] })) {
-        await navigator.share({ files: [new File([blob], doc.file_name, { type: blob.type })], title: doc.title });
-        return;
+      if (blob) {
+        const safeName = ensureFileName(doc.file_name, doc.file_type, doc.title);
+        const type = mimeFor(doc.file_type, safeName);
+        const fileObj = new File([blob], safeName, { type });
+        if (navigator.canShare?.({ files: [fileObj] })) {
+          await navigator.share({ files: [fileObj], title: doc.title });
+          return;
+        }
       }
       if (navigator.share) {
         await navigator.share({ title: doc.title, text: `${doc.title} — ${doc.subject_name || 'Tchatz Klassio'}` });
@@ -265,6 +281,16 @@ export default function DocumentDetail({ id }) {
           Téléchargez le document pour le consulter hors connexion.
         </p>
       )}
+
+      <DocumentViewer
+        open={Boolean(viewerBlob)}
+        blob={viewerBlob}
+        doc={doc}
+        onClose={() => setViewerBlob(null)}
+        onDownload={() => {
+          if (viewerBlob) downloadBlob(viewerBlob, doc.file_name, doc.file_type, doc.title);
+        }}
+      />
     </div>
   );
 }

@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useApp } from '../App.jsx';
 import { publishApi, finalizeUpload, friendlyError, errorCode } from '../lib/api.js';
 import { ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES } from '../lib/config.js';
+import { extFromName } from '../lib/file-types.js';
 import { Badge, Button, Card, Field, Icon, Input, Loading, Notice, Textarea } from '../components/UI.jsx';
+import DocumentViewer from '../components/DocumentViewer.jsx';
 import { formatBytes } from '../lib/format.js';
 
 export default function Publish({ token }) {
@@ -21,6 +23,7 @@ export default function Publish({ token }) {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState('');
   const [published, setPublished] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const inputRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -48,9 +51,10 @@ export default function Publish({ token }) {
   const pickFile = (f) => {
     setError('');
     if (!f) return;
-    const ext = f.name.split('.').pop().toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      setError('Format de fichier non autorisé. Formats acceptés : ' + ALLOWED_EXTENSIONS.join(', ') + '.');
+    const allowed = (context?.allowed_extensions || ALLOWED_EXTENSIONS).map((e) => e.toLowerCase());
+    const ext = extFromName(f.name);
+    if (!ext || !allowed.includes(ext)) {
+      setError('Format de fichier non autorisé. Formats acceptés : ' + allowed.join(', ') + '.');
       return;
     }
     const max = context?.max_upload_bytes || MAX_UPLOAD_BYTES;
@@ -236,6 +240,13 @@ export default function Publish({ token }) {
                 onChange={(e) => pickFile(e.target.files?.[0])}
               />
             </div>
+            {file && !busy && (
+              <div className="mt-1">
+                <Button size="sm" variant="outline" icon="eye" onClick={() => setPreviewOpen(true)}>
+                  Aperçu du fichier avant publication
+                </Button>
+              </div>
+            )}
           </Field>
 
           {busy && (
@@ -253,6 +264,18 @@ export default function Publish({ token }) {
           </p>
         </form>
       </Card>
+
+      <DocumentViewer
+        open={previewOpen && Boolean(file)}
+        blob={file}
+        doc={file ? {
+          title: title.trim() || file.name,
+          file_name: file.name,
+          file_type: extFromName(file.name),
+          file_size: file.size,
+        } : null}
+        onClose={() => setPreviewOpen(false)}
+      />
     </div>
   );
 }

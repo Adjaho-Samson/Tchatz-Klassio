@@ -43,6 +43,9 @@ const PATHS = {
   moon: 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z',
   monitor: 'M2 4h20v12H2zM8 20h8m-4-4v4',
   sparkles: 'm12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Zm7 12 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z',
+  zoomIn: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.35-4.35M11 8v6M8 11h6',
+  zoomOut: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.35-4.35M8 11h6',
+  rotate: 'M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5',
 };
 
 export function Icon({ name, size = 20, className = '', strokeWidth = 2 }) {
@@ -142,12 +145,17 @@ export function Badge({ tone = 'gray', children }) {
 }
 
 export function FileBadge({ type }) {
+  const clean = String(type || '').toLowerCase().replace(/^\.+/, '');
   const kinds = {
-    pdf: ['PDF', 'red'], doc: ['DOC', 'blue'], docx: ['DOCX', 'blue'],
-    ppt: ['PPT', 'orange'], pptx: ['PPTX', 'orange'], xls: ['XLS', 'green'],
-    xlsx: ['XLSX', 'green'], jpg: ['JPG', 'purple'], jpeg: ['JPG', 'purple'], png: ['PNG', 'purple'],
+    pdf: ['PDF', 'red'],
+    doc: ['DOC', 'blue'], docx: ['DOCX', 'blue'], odt: ['ODT', 'blue'], rtf: ['RTF', 'blue'],
+    ppt: ['PPT', 'orange'], pptx: ['PPTX', 'orange'], odp: ['ODP', 'orange'],
+    xls: ['XLS', 'green'], xlsx: ['XLSX', 'green'], ods: ['ODS', 'green'], csv: ['CSV', 'green'], tsv: ['TSV', 'green'],
+    jpg: ['JPG', 'purple'], jpeg: ['JPG', 'purple'], png: ['PNG', 'purple'],
+    webp: ['WEBP', 'purple'], gif: ['GIF', 'purple'], svg: ['SVG', 'purple'], bmp: ['BMP', 'purple'],
+    txt: ['TXT', 'gray'], md: ['MD', 'gray'], html: ['HTML', 'gray'], json: ['JSON', 'gray'], xml: ['XML', 'gray'], zip: ['ZIP', 'gray'],
   };
-  const [label, tone] = kinds[(type || '').toLowerCase()] || ['FIC', 'gray'];
+  const [label, tone] = kinds[clean] || [(clean || 'FIC').toUpperCase().slice(0, 4), 'gray'];
   return <span className={`file-badge tone-${tone}`}>{label}</span>;
 }
 

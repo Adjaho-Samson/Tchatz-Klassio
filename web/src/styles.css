@@ -817,6 +817,689 @@ small, .text-sm { font-size: 0.875rem; line-height: 1.55; }
   .stats-two-col { grid-template-columns: 1fr; }
 }
 
+/* ============================================================
+   Visionneuse de documents multi-format (DocumentViewer)
+   ============================================================ */
+.doc-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  animation: fade-in 0.16s ease;
+}
+
+.doc-viewer-header {
+  flex: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 5;
+}
+
+.doc-viewer-header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  min-height: 58px;
+}
+
+.doc-viewer-close {
+  flex: none;
+  gap: 4px;
+  padding: 7px 12px;
+}
+
+.doc-viewer-title-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.doc-viewer-title-wrap .file-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 0.64rem;
+}
+.doc-viewer-title-text {
+  min-width: 0;
+  flex: 1;
+}
+.doc-viewer-title {
+  font-weight: 700;
+  font-size: 0.96rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-viewer-subtitle {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+.doc-viewer-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-viewer-subbar {
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 7px 14px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.viewer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.viewer-controls-sheet {
+  justify-content: flex-start;
+}
+
+.viewer-pill-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.viewer-ctrl-btn {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  width: 34px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.viewer-ctrl-btn:hover:not(:disabled) {
+  background: var(--blue-bg);
+  color: var(--blue);
+}
+.viewer-ctrl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.viewer-zoom-reset {
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  min-width: 52px;
+  height: 32px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+.viewer-zoom-reset:hover {
+  background: var(--surface-2);
+}
+.viewer-indicator {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.viewer-segmented {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 2px;
+  gap: 2px;
+}
+.viewer-segmented button {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  padding: 5px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.viewer-segmented button.active {
+  background: var(--navy);
+  color: #fff;
+}
+
+.viewer-chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.viewer-chip-toggle.active,
+.viewer-chip-toggle:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.doc-viewer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.doc-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 12px calc(28px + env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+.doc-stage-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.viewer-fallback-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+/* ---- PDF ---- */
+.pdf-pages-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.pdf-page-card {
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 2px 14px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+.pdf-page-card canvas {
+  display: block;
+}
+.pdf-iframe-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pdf-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+.pdf-iframe-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Word .docx (isolation papier blanc pour éviter les conflits avec le thème sombre) ---- */
+.docx-scale-frame {
+  margin: 0 auto;
+  overflow: visible;
+}
+.docx-paper-host {
+  color: #111827;
+}
+.docx-paper-host h1,
+.docx-paper-host h2,
+.docx-paper-host h3,
+.docx-paper-host h4,
+.docx-paper-host h5,
+.docx-paper-host h6 {
+  color: inherit;
+  letter-spacing: normal;
+  text-wrap: wrap;
+}
+.docx-paper-host p {
+  margin: 0;
+}
+.docx-paged .docx-wrapper {
+  background: transparent !important;
+  padding: 8px 12px !important;
+}
+.docx-paged section.docx {
+  background: #ffffff !important;
+  color: #111827;
+  box-shadow: 0 2px 14px rgba(15, 23, 42, 0.16) !important;
+  margin-bottom: 18px !important;
+}
+.docx-flow .docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.docx-flow section.docx {
+  width: 100% !important;
+  max-width: 820px;
+  min-height: auto !important;
+  margin: 0 auto 16px !important;
+  padding: 24px 20px !important;
+  background: #ffffff !important;
+  color: #111827;
+  border-radius: 12px;
+  box-shadow: 0 2px 14px rgba(15, 23, 42, 0.14) !important;
+  overflow-x: auto;
+}
+.docx-flow section.docx img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+.docx-flow section.docx table {
+  max-width: 100%;
+  border-collapse: collapse;
+}
+
+/* ---- Documents riches (DOC, RTF, ODT, HTML, Markdown, Texte) ---- */
+.rich-paper {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 26px;
+  box-shadow: var(--shadow);
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+.rich-paper h1,
+.rich-paper h2,
+.rich-paper h3,
+.rich-paper h4 {
+  margin-top: 1.25em;
+  margin-bottom: 0.45em;
+}
+.rich-paper h1:first-child,
+.rich-paper h2:first-child,
+.rich-paper h3:first-child {
+  margin-top: 0;
+}
+.rich-paper p {
+  margin: 0 0 0.85em;
+}
+.rich-paper img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.rich-paper table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.92em;
+}
+.rich-paper th,
+.rich-paper td {
+  border: 1px solid var(--border-strong);
+  padding: 8px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.rich-paper th {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+.rich-table-scroll {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.doc-bullet-item {
+  display: flex;
+  gap: 10px;
+  padding-left: 6px;
+}
+.doc-embedded-images {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.doc-footnotes {
+  margin-top: 24px;
+  font-size: 0.88em;
+  color: var(--text-secondary);
+}
+.text-stage-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font);
+  font-size: 0.95em;
+  line-height: 1.65;
+}
+.text-stage-pre.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.86em;
+}
+.zip-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.zip-file-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+/* ---- Présentations PowerPoint (.pptx, .ppt, .odp) ---- */
+.slide-single-wrap,
+.slides-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.slide-card-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+.slide-card-num {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.slide-viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+  background: #ffffff;
+}
+.slide-canvas {
+  position: relative;
+  overflow: hidden;
+  color: #111827;
+  line-height: 1.3;
+}
+.slide-canvas h1,
+.slide-canvas h2,
+.slide-canvas h3,
+.slide-canvas h4,
+.slide-canvas p {
+  color: inherit;
+  margin: 0;
+}
+.slide-rich-text {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.slide-rich-text p {
+  margin: 0 0 0.2em;
+}
+.slide-rich-text ul,
+.slide-rich-text ol {
+  margin: 0;
+  padding-left: 1.25em;
+}
+.slide-table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.slide-structured-card {
+  width: 100%;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 12px;
+  padding: 28px 26px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.16);
+  min-height: 260px;
+}
+.slide-structured-card h3 {
+  color: #163b70;
+  font-size: 1.35rem;
+  margin-bottom: 14px;
+  border-bottom: 2px solid #dbeafe;
+  padding-bottom: 10px;
+}
+.slide-structured-card ul {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.slide-structured-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.slide-structured-imgs img {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+}
+.slide-QuickNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.slide-notes-box {
+  width: 100%;
+  max-width: 900px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Tableurs Excel / CSV / ODS ---- */
+.sheet-stage-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-tabs {
+  display: inline-flex;
+  gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.sheet-tab {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  padding: 5px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sheet-tab.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.sheet-search-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.sheet-search-box svg {
+  position: absolute;
+  left: 9px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.sheet-search-box input {
+  height: 32px;
+  padding: 4px 10px 4px 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  width: 180px;
+}
+.sheet-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+.sheet-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  min-width: 100%;
+}
+.sheet-grid th,
+.sheet-grid td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 7px 11px;
+  vertical-align: top;
+}
+.sheet-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-align: center;
+  min-width: 78px;
+}
+.sheet-grid .sheet-corner {
+  left: 0;
+  z-index: 3;
+  min-width: 44px;
+  width: 44px;
+}
+.sheet-grid .sheet-rownum {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 44px;
+  min-width: 44px;
+}
+.sheet-grid td {
+  background: var(--surface);
+  color: var(--text);
+  max-width: 380px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.sheet-grid td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sheet-grid td.center {
+  text-align: center;
+}
+.sheet-grid tbody tr:hover td:not(.sheet-rownum) {
+  background: color-mix(in srgb, var(--blue-bg) 35%, var(--surface));
+}
+.sheet-more-bar {
+  flex: none;
+  padding: 10px 16px;
+  text-align: center;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Images ---- */
+.image-stage-scroll {
+  display: flex;
+}
+.image-stage-inner {
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.image-stage-inner img {
+  display: block;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  transition: transform 0.18s ease;
+}
+
+@media (max-width: 480px) {
+  .hide-xs { display: none; }
+  .doc-viewer-header-main { padding: 8px 10px; gap: 8px; }
+  .doc-viewer-close span { display: none; }
+  .doc-viewer-close { padding: 7px 9px; }
+  .rich-paper { padding: 20px 16px; }
+  .slide-structured-card { padding: 20px 16px; }
+  .sheet-search-box input { width: 140px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
